@@ -18,3 +18,36 @@
 @media(max-width:620px){header{flex-wrap:wrap;gap:8px}.brand{margin-right:auto}header .plain-button{font-size:13px}.vault-list li{flex-wrap:wrap}.vault-list li>div{flex-basis:100%}.playback-bar{gap:16px}.export-controls button{min-height:42px}}
 
 header{gap:24px}.header-center{margin-right:auto}@media(max-width:620px){header{gap:8px}.brand-en{display:none}}
+
+/* Quiet brand frame: one wordmark, useful navigation, no slogans. */
+.site-header{height:80px;padding:0;display:block;background:#fff;border-bottom:1px solid #e7e9f0}
+.header-inner,.footer-inner{width:100%;max-width:1536px;margin:0 auto;padding:0 4.2%;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.header-inner{height:100%}
+.site-header .brand{gap:9px;margin:0;flex-shrink:0}
+.site-header .brand .mark{width:30px;height:30px;stroke-width:4}
+.site-header .wordmark{font-size:29px;font-weight:700;letter-spacing:-1.4px}
+.header-actions{display:flex;align-items:center;gap:12px}
+.site-header .plain-button{min-height:44px;padding:10px 14px;border-radius:6px;color:#424d63;font-size:14px;line-height:1.4;white-space:nowrap;transition:background .15s,color .15s}
+.site-header .plain-button:hover{background:#f0f2f8;color:var(--blue)}
+.site-header #vault-open{border:1px solid #dfe3ed;background:#fff;color:var(--blue)}
+.site-header #vault-open:hover{background:#f5f6fc;border-color:#b9bed9}
+.header-actions svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.site-footer{display:block;margin-top:56px;padding:0;background:transparent;border-top:1px solid #e0e4ed}
+.footer-inner{min-height:88px}
+.site-footer .footer-brand{gap:7px;font-size:19px;font-weight:650}
+.site-footer .footer-brand .mark{width:22px;height:22px;stroke-width:4}
+.site-footer .copyright{font:11px/1.5 Arial,sans-serif;letter-spacing:1.2px;color:#626b7c}
+@media(max-width:600px){
+  .site-header{height:72px}
+  .header-inner,.footer-inner{padding-left:5%;padding-right:5%;gap:12px}
+  .site-header .brand{gap:6px}
+  .site-header .brand .mark{width:26px;height:26px}
+  .site-header .wordmark{font-size:26px;letter-spacing:-1.3px}
+  .header-actions{gap:3px}
+  .site-header .plain-button{font-size:13px;padding:10px}
+  .header-actions svg{display:none}
+  .site-footer{margin-top:36px}
+  .footer-inner{min-height:76px}
+  .site-footer .copyright{font-size:10px;letter-spacing:.8px}
+}
+@media(max-width:360px){.header-inner{gap:8px}.site-header .wordmark{font-size:24px}.site-header .brand .mark{width:24px;height:24px}.site-header .plain-button{padding:10px 8px}}
