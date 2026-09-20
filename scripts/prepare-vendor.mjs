@@ -1,0 +1,9 @@
+import fs from 'node:fs/promises';import path from 'node:path';import {gunzipSync} from 'node:zlib';import {createHash} from 'node:crypto';
+const manifest=JSON.parse(await fs.readFile(new URL('./vendor-manifest.json',import.meta.url),'utf8'));
+const hash=b=>createHash('sha256').update(b).digest('hex');
+function untar(buffer){const out=new Map();for(let offset=0;offset+512<=buffer.length;){const h=buffer.subarray(offset,offset+512),name=h.subarray(0,100).toString().replace(/\0.*/, '');if(!name)break;const size=parseInt(h.subarray(124,136).toString().replace(/\0.*/, '').trim(),8)||0;out.set(name,buffer.subarray(offset+512,offset+512+size));offset+=512+Math.ceil(size/512)*512}return out}
+async function fetchVerified(url,expected){const r=await fetch(url,{signal:AbortSignal.timeout(120000)});if(!r.ok)throw Error(`Download failed: ${r.status}`);const bytes=Buffer.from(await r.arrayBuffer());if(hash(bytes)!==expected)throw Error('Vendor checksum mismatch: '+url);return bytes}
+const archives=new Map();
+for(const file of manifest.files){const target=path.resolve(file.path);if(!target.startsWith(path.resolve('dist/vendor')+path.sep))throw Error('Invalid vendor path');try{if(hash(await fs.readFile(target))===file.sha256)continue}catch{}
+ let bytes;if(file.url)bytes=await fetchVerified(file.url,file.sha256);else{if(!archives.has(file.archive)){const archive=manifest.archives.find(a=>a.url===file.archive);if(!archive)throw Error('Unknown vendor archive');archives.set(file.archive,untar(gunzipSync(await fetchVerified(archive.url,archive.sha256))))}bytes=archives.get(file.archive).get(file.entry);if(!bytes||hash(bytes)!==file.sha256)throw Error('Vendor file mismatch: '+file.path)}await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,bytes)
+}console.log('Verified PDF and OCR assets are ready.');

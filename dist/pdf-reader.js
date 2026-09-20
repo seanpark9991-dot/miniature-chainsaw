@@ -1,0 +1,13 @@
+export async function pdfBlocks(file,warnings,{signal,progress=()=>{},ocr=true}={}){
+ const pdfjs=await import('./vendor/pdf.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdf.worker.mjs',import.meta.url).href;
+ const task=pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false,useSystemFonts:true,cMapUrl:new URL('./vendor/cmaps/',import.meta.url).href,cMapPacked:true});let pdf;const abort=()=>task.destroy();signal?.addEventListener('abort',abort,{once:true});
+ try{pdf=await task.promise;if(pdf.numPages>60)throw Error('PDF는 최대 60쪽까지 지원합니다. 자료를 나눠 주세요.');const blocks=[];
+  for(let p=1;p<=pdf.numPages;p++){if(signal?.aborted)throw new DOMException('취소했습니다.','AbortError');progress(`${p}/${pdf.numPages}쪽 읽는 중`);const page=await pdf.getPage(p);const content=await page.getTextContent();const items=content.items.filter(t=>typeof t.str==='string'&&t.str.trim());blocks.push({kind:'heading',text:`${p}쪽`,level:1});const lines=[];
+   for(const it of items){const y=it.transform[5];let line=lines.find(l=>Math.abs(l.y-y)<Math.max(2,it.height*.25));if(!line){line={y,items:[]};lines.push(line)}line.items.push(it)}
+   const text=lines.sort((a,b)=>b.y-a.y).map(l=>l.items.sort((a,b)=>a.transform[4]-b.transform[4]).map(t=>t.str).join(' ')).join('\n');if(text)blocks.push({kind:'paragraph',text,source:`${p}쪽`,method:'PDF 텍스트'});
+   const operators=await page.getOperatorList();const imageOps=[pdfjs.OPS.paintImageXObject,pdfjs.OPS.paintInlineImageXObject,pdfjs.OPS.paintImageMaskXObject];const hasImage=operators.fnArray.some(op=>imageOps.includes(op));const sparse=text.replace(/\s/g,'').length<50;
+   if(hasImage||sparse){const base=page.getViewport({scale:1});const scale=Math.min(2.2,2200/Math.max(base.width,base.height));const viewport=page.getViewport({scale});const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;blocks.push({kind:'visual',source:`${p}쪽 전체 시각 자료`,text:'',unresolved:true,image:{dataURL:canvas.toDataURL('image/jpeg',.9)},context:text});canvas.width=0;canvas.height=0}
+   page.cleanup();
+  }warnings.add('PDF 본문은 글자 위치로 읽기 순서를 정합니다. 여러 단의 자료는 페이지 설명과 함께 확인해 주세요.');warnings.add('PDF는 문서 형식상 표의 열 제목과 화살표 연결 정보가 보존되지 않을 수 있습니다. 가능하면 원본 PPTX·DOCX를 사용하면 더 많은 관계를 읽을 수 있습니다.');return blocks;
+ }catch(e){if(signal?.aborted)throw new DOMException('취소했습니다.','AbortError');if(e.name==='PasswordException')throw Error('암호를 해제한 PDF를 올려 주세요.');throw e}finally{signal?.removeEventListener('abort',abort);await task.destroy()}
+}
