@@ -1,5 +1,7 @@
 # 리드온 / READON
 
+**공개 사이트: https://seanpark9991-dot.github.io/miniature-chainsaw/**
+
 강의자료의 표·수식·차트·도식 구조를 스크린리더로 읽기 좋은 문장으로 변환합니다. 자체 R 로고와 짙은 파랑(#0f0f70)을 사용합니다.
 
 ## 실행과 배포
@@ -43,3 +45,4 @@ Node.js 24 이상에서 `node scripts/prepare-vendor.mjs`로 고정 버전의 PD
 ## 라이선스
 
 `dist/vendor/`에 PDF.js, fflate, Tesseract.js 및 OCR 모델의 라이선스가 포함됩니다. 한국어는 tessdata_best, 영어는 tessdata_fast 모델을 사용합니다.
+
